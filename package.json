@@ -27,7 +27,7 @@
   },
   "homepage": "https://github.com/makenai/node-uvc-control#readme",
   "dependencies": {
-    "usb": "^2.8.0"
+    "usb": "^2.15.0"
   },
   "engines": {
     "node": ">=12"
