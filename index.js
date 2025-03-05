@@ -376,9 +376,9 @@ function getInterfaces(device) {
     config.interfaces.forEach(iface => {
       // Concatenate iface to interfaces
       if (Array.isArray(iface)) {
-        iface.forEach(i => interfaces.push(i));
+        iface.forEach(i => interfaces.push({ descriptor: i }));
       } else {
-        interfaces.push(iface);
+        interfaces.push({ descriptor: iface });
       }
     });
   });
@@ -397,7 +397,7 @@ function getInterfaceDescriptors(device) {
   })[0]
 
   // parse the descriptors in the extra field
-  let data = vcInterface.extra.toJSON().data
+  let data = vcInterface?.descriptor?.extra.toJSON().data
   let descriptorArrays = []
   while (data.length) {
     let bLength = data[0]
