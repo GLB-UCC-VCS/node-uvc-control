@@ -385,6 +385,39 @@ function getInterfaces(device) {
   return interfaces;
 }
 
+/**
+ * Normalizes and returns the interface descriptors for the device.
+ * The device layout may defer across platforms, and devices.
+ * Windows: https://learn.microsoft.com/en-us/windows-hardware/drivers/usbcon/usb-device-layout
+ * Device {
+ *  allConfigDescriptors: [
+ *   {
+ *   interfaces: [
+ *    [
+ *      { descriptor: [Object], endpoints: [Array] },
+ *      { descriptor: [Object], endpoints: [Array] }
+ *    ],
+ *    [
+ *      { descriptor: [Object], endpoints: [Array] },
+ *      { descriptor: [Object], endpoints: [Array] }
+ *    ]]
+ *   }]
+ * }
+ * 
+ * MacOS:
+ * Device {
+ * interfaces: [
+ *   { descriptor: [Object], endpoints: [Array] },
+ *   { descriptor: [Object], endpoints: [Array] }
+ *  ]
+ *}
+ * 
+ * Also see: Linux: https://www.kernel.org/doc/html/v4.13/media/v4l-drivers/uvcvideo.html
+ * 
+ * @param {object} device - The USB device
+ * @returns {Array[object]} descriptors - The interfaces descriptors for the device
+ *  
+ */
 function getInterfaceDescriptors(device) {
   // find the VC interface
   // VC Interface Descriptor is a concatenation of all the descriptors that are used to fully describe
