@@ -370,21 +370,6 @@ function isWebcam(device) {
     device.deviceDescriptor.bDeviceProtocol === 0x01
 }
 
-function getInterfaces(device) {
-  const interfaces = Array.isArray(device.interfaces) ? device.interfaces : [];
-  device.allConfigDescriptors.forEach(config => {
-    config.interfaces.forEach(iface => {
-      // Concatenate iface to interfaces
-      if (Array.isArray(iface)) {
-        iface.forEach(i => interfaces.push({ descriptor: i }));
-      } else {
-        interfaces.push({ descriptor: iface });
-      }
-    });
-  });
-  return interfaces;
-}
-
 /**
  * Normalizes and returns the interface descriptors for the device.
  * The device layout may defer across platforms, and devices.
@@ -406,6 +391,14 @@ function getInterfaces(device) {
  * 
  * MacOS:
  * Device {
+ *  allConfigDescriptors: [
+ *    {
+ *      interfaces: [
+ *        { descriptor: [Object], endpoints: [Array] },
+ *        { descriptor: [Object], endpoints: [Array] }
+ *      ]
+ *    }
+ *  ],
  * interfaces: [
  *   { descriptor: [Object], endpoints: [Array] },
  *   { descriptor: [Object], endpoints: [Array] }
@@ -415,9 +408,23 @@ function getInterfaces(device) {
  * Also see: Linux: https://www.kernel.org/doc/html/v4.13/media/v4l-drivers/uvcvideo.html
  * 
  * @param {object} device - The USB device
- * @returns {Array[object]} descriptors - The interfaces descriptors for the device
- *  
+ * @returns {Array[object]} - The interfaces descriptors for the device
  */
+function getInterfaces(device) {
+  const interfaces = Array.isArray(device.interfaces) ? [...device.interfaces] : [];
+  device.allConfigDescriptors?.forEach(config => {
+    config?.interfaces?.forEach(iface => {
+      // Concatenate iface to interfaces
+      if (Array.isArray(iface)) {
+        iface.forEach(i => interfaces.push({ descriptor: i }));
+      } else {
+        interfaces.push({ descriptor: iface });
+      }
+    });
+  });
+  return interfaces;
+}
+
 function getInterfaceDescriptors(device) {
   // find the VC interface
   // VC Interface Descriptor is a concatenation of all the descriptors that are used to fully describe
