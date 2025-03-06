@@ -25,7 +25,7 @@ class UVCControl extends EventEmitter {
 
   init() {
     const deviceList = getDeviceList();
-
+    
     if (this.options.vid && this.options.pid && this.options.deviceAddress) {
 
       // find cam with vid / pid / deviceAddress
@@ -370,20 +370,74 @@ function isWebcam(device) {
     device.deviceDescriptor.bDeviceProtocol === 0x01
 }
 
+/**
+ * Normalizes and returns the interface descriptors for the device.
+ * The device layout may defer across platforms, and devices.
+ * Windows: https://learn.microsoft.com/en-us/windows-hardware/drivers/usbcon/usb-device-layout
+ * Device {
+ *  allConfigDescriptors: [
+ *   {
+ *   interfaces: [
+ *    [
+ *      { descriptor: [Object], endpoints: [Array] },
+ *      { descriptor: [Object], endpoints: [Array] }
+ *    ],
+ *    [
+ *      { descriptor: [Object], endpoints: [Array] },
+ *      { descriptor: [Object], endpoints: [Array] }
+ *    ]]
+ *   }]
+ * }
+ * 
+ * MacOS:
+ * Device {
+ *  allConfigDescriptors: [
+ *    {
+ *      interfaces: [
+ *        { descriptor: [Object], endpoints: [Array] },
+ *        { descriptor: [Object], endpoints: [Array] }
+ *      ]
+ *    }
+ *  ],
+ * interfaces: [
+ *   { descriptor: [Object], endpoints: [Array] },
+ *   { descriptor: [Object], endpoints: [Array] }
+ *  ]
+ *}
+ * 
+ * Also see: Linux: https://www.kernel.org/doc/html/v4.13/media/v4l-drivers/uvcvideo.html
+ * 
+ * @param {object} device - The USB device
+ * @returns {Array[object]} - The interfaces descriptors for the device
+ */
+function getInterfaces(device) {
+  const interfaces = Array.isArray(device.interfaces) ? [...device.interfaces] : [];
+  device.allConfigDescriptors?.forEach(config => {
+    config?.interfaces?.forEach(iface => {
+      // Concatenate iface to interfaces
+      if (Array.isArray(iface)) {
+        iface.forEach(i => interfaces.push({ descriptor: i }));
+      } else {
+        interfaces.push({ descriptor: iface });
+      }
+    });
+  });
+  return interfaces;
+}
+
 function getInterfaceDescriptors(device) {
   // find the VC interface
   // VC Interface Descriptor is a concatenation of all the descriptors that are used to fully describe
   // the video function, i.e., all Unit Descriptors (UDs) and Terminal Descriptors (TDs)
-  const vcInterface = device.interfaces.filter(interface => {
-    const {
-      descriptor
-    } = interface
+  const interfaces = getInterfaces(device);
+  const vcInterface = interfaces.filter(interface => {
+    const descriptor = interface.descriptor || interface;
     return descriptor.bInterfaceClass === CC.VIDEO &&
       descriptor.bInterfaceSubClass === SC.VIDEOCONTROL
   })[0]
 
   // parse the descriptors in the extra field
-  let data = vcInterface.descriptor.extra.toJSON().data
+  let data = vcInterface?.descriptor?.extra.toJSON().data
   let descriptorArrays = []
   while (data.length) {
     let bLength = data[0]

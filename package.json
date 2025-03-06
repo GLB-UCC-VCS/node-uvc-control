@@ -1,6 +1,6 @@
 {
   "name": "uvc-control",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Control UVC compliant webcams from node",
   "main": "index.js",
   "repository": {
@@ -27,7 +27,7 @@
   },
   "homepage": "https://github.com/makenai/node-uvc-control#readme",
   "dependencies": {
-    "usb": "^2.8.0"
+    "usb": "^2.15.0"
   },
   "engines": {
     "node": ">=12"
